@@ -176,3 +176,4 @@ export default function Home() {
     </Box>
   );
 }
+//This is the main page
