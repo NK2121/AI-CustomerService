@@ -1,34 +1,88 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useSession, getSession, signIn } from 'next-auth/react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
+import { styled } from '@mui/system';
+import Typography from '@mui/material/Typography';
+import HearForYouLogo from './image.svg'; // Assuming you have a logo component or import
+
+const BackgroundContainer = styled(Box)({
+  width: '100vw',
+  height: '100vh',
+  background: 'linear-gradient(to bottom right, #8EC5FC, #E0C3FC)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '20px',
+  overflow: 'hidden',
+});
+
+const ChatBox = styled(Stack)({
+  width: '100%',
+  maxWidth: '600px',
+  height: '60%',
+  borderRadius: '20px',
+  padding: '20px',
+  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+  overflowY: 'auto',
+  scrollbarWidth: 'thin',
+  scrollbarColor: '#5A5A5A transparent',
+  '&::-webkit-scrollbar': {
+    width: '6px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: '#5A5A5A',
+    borderRadius: '10px',
+  },
+});
+
+const MessageContainer = styled(Box)(({ role }) => ({
+  display: 'flex',
+  justifyContent: role === 'assistant' ? 'flex-start' : 'flex-end',
+  marginBottom: '16px',
+}));
+
+const MessageBubble = styled(Box)(({ role, theme }) => ({
+  maxWidth: '75%',
+  backgroundColor: role === 'assistant' ? '#f1f0ff' : '#daf5db',
+  color: role === 'assistant' ? '#000000' : '#000000',
+  borderRadius: '20px',
+  padding: '14px 20px',
+  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+  fontSize: '16px',
+  lineHeight: '1.6',
+  wordWrap: 'break-word',
+}));
+
+const InputContainer = styled(Stack)({
+  width: '100%',
+  maxWidth: '600px',
+  borderRadius: '30px',
+  backgroundColor: '#ffffff',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  marginTop: '20px',
+  padding: '10px',
+  alignItems: 'center',
+});
 
 export default function Home() {
-  const { data: session, status } = useSession();
   const theme = useTheme();
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hi! I'm the EthioLink Support Agent, how can I assist you today?",
+      content: "Hi! I'm the HearForYou Support Agent. How can I assist you today?",
     }
   ]);
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    if (status === 'loading') return; // Do nothing while loading
-    if (!session) signIn(); // If not authenticated, force sign in
-  }, [session, status]);
-
-  if (!session) {
-    return <p>Loading...</p>; // Loading state or redirect to sign-in
-  }
-
   const sendMessage = async () => {
+    if (message.trim() === '') return;
     setMessage('');
     setMessages((messages) => [
       ...messages,
@@ -75,76 +129,24 @@ export default function Home() {
   };
 
   return (
-    <Box
-      width="100vw"
-      height="100vh"
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-      sx={{ backgroundColor: '#e9eef3', padding: '20px' }}
-    >
-      <Stack
-        direction="column"
-        width="600px"
-        height="700px"
-        border="1px solid #ccc"
-        borderRadius="12px"
-        p={2}
-        spacing={2}
-        sx={{
-          backgroundColor: '#ffffff',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          overflowY: 'auto',
-          scrollbarWidth: 'thin',
-          scrollbarColor: `${theme.palette.primary.main} transparent`,
-          '&::-webkit-scrollbar': {
-            width: '6px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: theme.palette.primary.main,
-            borderRadius: '10px',
-          },
-        }}
-      >
+    <BackgroundContainer>
+      <Box textAlign="center" mb={3}>
+        <img src={HearForYouLogo} alt="HearForYou Logo" style={{ width: '100px', height: 'auto' }} />
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#ffffff', marginTop: '10px' }}>
+          HearForYou Support Chat
+        </Typography>
+      </Box>
+      <ChatBox spacing={2}>
         {messages.map((message, index) => (
-          <Box
-            key={index}
-            display="flex"
-            justifyContent={
-              message.role === 'assistant' ? 'flex-start' : 'flex-end'
-            }
-            mb={2}
-          >
-            <Box
-              sx={{
-                maxWidth: '70%',
-                bgcolor: message.role === 'assistant'
-                  ? theme.palette.primary.light
-                  : theme.palette.secondary.light,
-                color: message.role === 'assistant'
-                  ? theme.palette.primary.contrastText
-                  : theme.palette.secondary.contrastText,
-                borderRadius: '18px',
-                padding: '14px 20px',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                fontSize: '16px',
-                lineHeight: '1.6',
-                wordWrap: 'break-word',
-              }}
-            >
+          <MessageContainer key={index} role={message.role}>
+            <MessageBubble role={message.role} theme={theme}>
               {message.content}
-            </Box>
-          </Box>
+            </MessageBubble>
+          </MessageContainer>
         ))}
-      </Stack>
+      </ChatBox>
 
-      <Stack
-        direction="row"
-        spacing={2}
-        mt={2}
-        sx={{ width: '600px', borderRadius: '12px', backgroundColor: '#fff' }}
-      >
+      <InputContainer direction="row" spacing={2}>
         <TextField
           label="Type a message..."
           fullWidth
@@ -152,9 +154,13 @@ export default function Home() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           sx={{
-            borderRadius: '18px',
+            borderRadius: '30px',
             '& .MuiOutlinedInput-root': {
-              borderRadius: '18px',
+              borderRadius: '30px',
+              padding: '10px',
+            },
+            '& .MuiInputLabel-root': {
+              fontSize: '14px',
             },
           }}
         />
@@ -163,17 +169,17 @@ export default function Home() {
           color="primary"
           onClick={sendMessage}
           sx={{
-            borderRadius: '18px',
+            borderRadius: '30px',
             padding: '10px 24px',
             fontSize: '16px',
             backgroundColor: theme.palette.primary.main,
             textTransform: 'none',
+            minWidth: '80px',
           }}
         >
           Send
         </Button>
-      </Stack>
-    </Box>
+      </InputContainer>
+    </BackgroundContainer>
   );
 }
-//This is the main page
